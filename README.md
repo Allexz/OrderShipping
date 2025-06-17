@@ -1,5 +1,15 @@
 # SPRINT: UDEMY COURSES
  ### **Iniciado em: 13/06** 
+
+## Comparação entre Tipos de Exchanges
+
+| Tipo       | Routing Key         | Performance      | Complexidade     | Caso Típico de Uso          |
+|------------|--------------------|------------------|------------------|-----------------------------|
+| Direct     | Exata (correspondência perfeita) | Alta        | Baixa        | Comandos, RPC               |
+| Fanout     | Ignorada           | Muito Alta       | Mínima           | Broadcast/Notificações      |
+| Topic      | Padrão (com wildcards `*` e `#`) | Média       | Média-Alta    | Eventos Complexos           |
+| Headers    | Não usa (somente headers) | Baixa | Alta         | Roteamento por Metadados    |
+ 
  ## Branch master
  ### Implementação básica de uma API(Minimal API) fazendo requisições a um ENDPOINT do tipo RABBITMQ sobre WEBAPI/C#
 #

@@ -8,7 +8,8 @@ builder.Services.AddMassTransit((rmq) =>
     rmq.AddConsumer<OrderPlacedConsumer>();
     rmq.UsingRabbitMq((context, cfg) =>
     {
-        cfg.ExchangeType = "direct"; // Define o tipo de exchange como "direct"
+        cfg.ExchangeType = "fanout"; 
+        //cfg.Publish<OrderPlacedConsumer>(x => x.ExchangeType = "fanout");
         cfg.Host("rabbitmq://localhost", h =>
         {
             h.Username("admin");
@@ -20,7 +21,7 @@ builder.Services.AddMassTransit((rmq) =>
             e.ConfigureConsumer<OrderPlacedConsumer>(context);
             e.Bind("order-placed-exchange", x =>
             {
-                x.RoutingKey = "order.shipping";
+                x.ExchangeType = "fanout";
             });
             e.ConfigureConsumeTopology = false;  
         });

@@ -7,7 +7,7 @@ builder.Services.AddMassTransit(( rmq) =>
     rmq.AddConsumer<OrderPlacedConsumer>();
     rmq.UsingRabbitMq((context, cfg) =>
     {
-        cfg.ExchangeType = "direct";
+        cfg.ExchangeType = "fanout";
         cfg.Host("rabbitmq://localhost", h =>
         {
             h.Username("admin");
@@ -19,7 +19,7 @@ builder.Services.AddMassTransit(( rmq) =>
             e.ConfigureConsumer<OrderPlacedConsumer>(context);
             e.Bind("order-placed-exchange", x =>
             {
-                x.RoutingKey = "order.tracking";
+                x.ExchangeType = "fanout";
             });
             e.ConfigureConsumeTopology = false;
         });

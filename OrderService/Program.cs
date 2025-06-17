@@ -7,29 +7,62 @@ builder.Services.AddMassTransit(rmq =>
 {
     rmq.UsingRabbitMq((context, cfg) =>
     {
+        cfg.ExchangeType = "direct"; // Define o tipo de exchange como "direct"
         cfg.Host("rabbitmq://localhost", h =>
         {
             h.Username("admin");
             h.Password("senhaadmin");
         });
+
+        cfg.Message<OrderPlaced>(x => x.SetEntityName("order-placed-exchange"));
     });
 });
-EndpointConvention.Map<OrderPlaced>(new Uri("queue:order-placed"));
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Logging.AddConsole().SetMinimumLevel(LogLevel.Debug);
 
 var app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI();
-
 app.MapPost("/orders", async (OrderRequest order, IBus bus) =>
 {
-    var orderPlacedMessage = new OrderPlaced(order.OrderId, order.Quantity);
-    await bus.Send(orderPlacedMessage);
+    OrderPlacedMessage orderPlacedMessage = new OrderPlacedMessage(order.OrderId,order.Quantity);
+    bool toShipping = order.Quantity > 10;
+
+    if (toShipping)
+    {
+        await bus.Publish(orderPlacedMessage, context =>
+        {
+            context.SetRoutingKey("order.shipping");
+        });
+    }
+    else
+    {
+        await bus.Publish(orderPlacedMessage, context =>
+        {
+            context.SetRoutingKey("order.tracking");
+        });
+    }
 
     return Results.Created($"orders/{order.OrderId}", orderPlacedMessage);
+});
+
+// Adicione este endpoint temporário no OrderService para testar a conexão
+app.MapGet("/test-rabbit", async (IBus bus) =>
+{
+    try
+    {
+        Guid guid = Guid.NewGuid();
+        int quantity = 5;
+        await bus.Publish(new OrderPlacedMessage ( guid, quantity ));
+        return Results.Ok("Mensagem publicada com sucesso");
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem($"Falha ao publicar: {ex}");
+    }
 });
 
 app.Run();

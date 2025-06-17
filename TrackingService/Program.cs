@@ -1,29 +1,29 @@
 using MassTransit;
-using ShippingService.Consumers;
+using TrackingService.Consumers;
 
 var builder = WebApplication.CreateBuilder(args);
-
-builder.Services.AddMassTransit((rmq) =>
+builder.Services.AddMassTransit(( rmq) =>
 {
     rmq.AddConsumer<OrderPlacedConsumer>();
     rmq.UsingRabbitMq((context, cfg) =>
     {
-        cfg.ExchangeType = "direct"; // Define o tipo de exchange como "direct"
+        cfg.ExchangeType = "direct";
         cfg.Host("rabbitmq://localhost", h =>
         {
             h.Username("admin");
             h.Password("senhaadmin");
         });
 
-        cfg.ReceiveEndpoint("shipping-order-queue", e =>
+        cfg.ReceiveEndpoint("tracking-order-queue", e =>
         {
             e.ConfigureConsumer<OrderPlacedConsumer>(context);
             e.Bind("order-placed-exchange", x =>
             {
-                x.RoutingKey = "order.shipping";
+                x.RoutingKey = "order.tracking";
             });
-            e.ConfigureConsumeTopology = false;  
+            e.ConfigureConsumeTopology = false;
         });
+
     });
 });
 

@@ -1,15 +1,16 @@
 ﻿using MassTransit;
 using SharedMessages.Messages;
 
-namespace ShippingService.Consumers;
+namespace TrackingService.Consumers;
 
 public class OrderPlacedConsumer : IConsumer<OrderPlacedMessage>
-{   
+{
     public async Task Consume(ConsumeContext<OrderPlacedMessage> context)
     {
 		try
 		{
-			Console.WriteLine($"Order shipped: {context.Message.OrderId}, Quantity: {context.Message.Quantity}");
+			Console.WriteLine($"Order tracked: {context.Message.OrderId} - {context.Message.Quantity}");
+
 			await Task.Delay(10000);
 		}
 		catch (Exception ex)
@@ -19,4 +20,3 @@ public class OrderPlacedConsumer : IConsumer<OrderPlacedMessage>
 		}
     }
 }
- 

@@ -8,8 +8,6 @@ builder.Services.AddMassTransit((rmq) =>
     rmq.AddConsumer<OrderPlacedConsumer>();
     rmq.UsingRabbitMq((context, cfg) =>
     {
-        cfg.ExchangeType = "fanout"; 
-        //cfg.Publish<OrderPlacedConsumer>(x => x.ExchangeType = "fanout");
         cfg.Host("rabbitmq://localhost", h =>
         {
             h.Username("admin");
@@ -19,11 +17,15 @@ builder.Services.AddMassTransit((rmq) =>
         cfg.ReceiveEndpoint("shipping-order-queue", e =>
         {
             e.ConfigureConsumer<OrderPlacedConsumer>(context);
+            e.ConfigureConsumeTopology = false;  
             e.Bind("order-placed-exchange", x =>
             {
-                x.ExchangeType = "fanout";
+                x.ExchangeType = "topic"; 
+                x.RoutingKey = "order.*";
+                x.Durable = true;
             });
-            e.ConfigureConsumeTopology = false;  
+            e.PrefetchCount = 10; // Controla o número de mensagens pré-buscadas
+            e.ConcurrentMessageLimit = 5; // Limite de mensagens processadas simultaneamente
         });
     });
 });

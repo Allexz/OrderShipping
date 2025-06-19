@@ -7,16 +7,22 @@ builder.Services.AddMassTransit(rmq =>
 {
     rmq.UsingRabbitMq((context, cfg) =>
     {
-        cfg.ExchangeType = "fanout";
-        //cfg.Publish<OrderPlacedMessage>(x => x.ExchangeType = "fanout");
         cfg.Host("rabbitmq://localhost", h =>
         {
             h.Username("admin");
             h.Password("senhaadmin");
+            h.Heartbeat(30);
+            h.RequestedConnectionTimeout(10000);
+            h.PublisherConfirmation = true;
         });
-
         cfg.Message<OrderPlacedMessage>(x => x.SetEntityName("order-placed-exchange"));
-
+        cfg.Publish<OrderPlacedMessage>(x =>
+        {
+            x.ExchangeType = "topic";
+            x.Durable = true;
+            x.AutoDelete = false;
+            x.Exclude = true;
+        });
     });
 });
 
@@ -32,8 +38,22 @@ app.MapPost("/orders", async (OrderRequest order, IBus bus) =>
 {
     OrderPlacedMessage orderPlacedMessage = new OrderPlacedMessage(order.OrderId, order.Quantity);
 
-    await bus.Publish(orderPlacedMessage);
+    bool isLowQuantity = order.Quantity < 10;
 
+    if (isLowQuantity)
+    {
+        await bus.Publish(orderPlacedMessage, context =>
+        {
+            context.SetRoutingKey("order.shipping");
+        });
+    }
+    else
+    {
+        await bus.Publish(orderPlacedMessage, context =>
+        {
+            context.SetRoutingKey("order.regular.tracking");
+        });
+    }
     return Results.Created($"orders/{order.OrderId}", orderPlacedMessage);
 });
 

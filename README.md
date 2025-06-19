@@ -11,10 +11,18 @@
 | Headers    | Não usa (somente headers) | Baixa | Alta         | Roteamento por Metadados    |
  
  ## Branch master
- ### Implementação básica de uma API(Minimal API) fazendo requisições a um ENDPOINT do tipo RABBITMQ sobre WEBAPI/C#
+ ### Implementação básica de uma API(Minimal API) fazendo requisições a um ENDPOINT do tipo RABBITMQ FANOUT sobre WEBAPI/C#
 #
  ## Branch feature/direct-exchange
- ### Evolução do projeto para utilização de EXCHANGE do tipo DIRECT RABBITMQ sobre WEBAPI/C#
+ ### Evolução do projeto para utilização de EXCHANGE do tipo DIRECT RABBITMQ sobre WEBAPI/C#  
+ Uma característica do deste tipo de EXCHANGE, __DIRECT__, é a existência de ROUTING KEYS, que são parâmetros adicionados às mensagens que direcionam, por correspondência exata, às QUEUEUS configuradas para atender àquele parâmetro. 
+
+ #
+ ## Branch feature/topic-exchange
+ ### Evolução do projeto para utilização de EXCHANGE do tipo TOPIC RABBITMQ sobre WEBAPI/C#  
+ Já a característica deste tipo de EXCHANGE, __TOPIC__, é a utilização de _WILDCARDS_ para direcionamento das mensagens.    
+ 1. order.* - As QUEUES receberão mensagens que contenham uma única palavra após o padrão _order._ (order.product, order.stock, order.stop)
+ 2. order.# - As QUEUES receberão mensagens que contenham qualquer número de palavras após o padrão _order.#_ (order.payment.rejected, order.payment.accepted, order.payment.unauthorized)
 
 #
  Notas:

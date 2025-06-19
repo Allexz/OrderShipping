@@ -15,13 +15,11 @@ builder.Services.AddMassTransit(rmq =>
             h.RequestedConnectionTimeout(10000);
             h.PublisherConfirmation = true;
         });
+    
         cfg.Message<OrderPlacedMessage>(x => x.SetEntityName("order-placed-exchange"));
         cfg.Publish<OrderPlacedMessage>(x =>
         {
             x.ExchangeType = "topic";
-            x.Durable = true;
-            x.AutoDelete = false;
-            x.Exclude = true;
         });
     });
 });

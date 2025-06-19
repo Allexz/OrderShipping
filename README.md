@@ -25,17 +25,18 @@
  2. order.# - As QUEUES receberão mensagens que contenham qualquer número de palavras após o padrão _order.#_ (order.payment.rejected, order.payment.accepted, order.payment.unauthorized)
 
 #
- Notas:
-### Diferenças entre os dois comandos:
-1. cfg.ExchangeType = "fanout";
-2. cfg.Publish<OrderPlacedMessage>(x => x.ExchangeType = "fanout");
-- O primeiro define o tipo padrão de EXCHANGE para todas EXCHANGES criadas pelo MASSTRANSIT.  
-É uma configuração global que afeta toda a topologia.
-Usar em cenários simples onde todas as mensagens usam o mesmo tipo de EXCHANGE
-- O segundo define o tipo de EXCHANGE específico para a mensagem tipo ORDERPLACEDMESSAGE.  
-  Permite a configuração granular por tipo de mensagem.  
-  Utilize em cenários complexos com múltiplos tipos de roteamento  .
-  #
+### Notas:
+
+1. __cfg.ExchangeType = "fanout"__;
+   Define o tipo padrão de EXCHANGE para todas EXCHANGES criadas pelo MASSTRANSIT. É uma configuração global que afeta toda a topologia.
+   Usar em cenários simples onde todas as mensagens usam o mesmo tipo de EXCHANGE.
+
+2. __cfg.Publish<OrderPlacedMessage>(x => x.ExchangeType = "fanout")__;
+   Define o tipo de EXCHANGE específico para a mensagem tipo ORDERPLACEDMESSAGE. Permite a configuração granular por tipo de mensagem.
+   Utilize em cenários complexos com múltiplos tipos de roteamento  .
+   
+3. __Binding__ (vinculação) é a configuração que define como mensagens são roteadas de uma exchange (no RabbitMQ) ou um tópico (em outros brokers) para uma fila específica. Ele estabelece as regras de filtragem e entrega de mensagens com base em routing keys ou padrões de assinatura.
+  
 
 
 

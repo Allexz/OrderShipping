@@ -12,9 +12,13 @@ builder.Services.AddMassTransit(rmq =>
             h.Username("admin");
             h.Password("senhaadmin");
         });
+        cfg.Message<OrderPlacedMessage>(x => x.SetEntityName("order-placed-exchange"));
+        cfg.Publish<OrderPlacedMessage>(exch => exch.ExchangeType = "direct");
+        
+
     });
 });
-EndpointConvention.Map<OrderPlaced>(new Uri("queue:order-placed"));
+EndpointConvention.Map<OrderPlacedMessage>(new Uri("queue:order-placed-exchange"));
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -26,8 +30,11 @@ app.UseSwaggerUI();
 
 app.MapPost("/orders", async (OrderRequest order, IBus bus) =>
 {
-    var orderPlacedMessage = new OrderPlaced(order.OrderId, order.Quantity);
-    await bus.Send(orderPlacedMessage);
+    var orderPlacedMessage = new OrderPlacedMessage(order.OrderId, order.Quantity);
+    await bus.Publish(orderPlacedMessage, context =>
+    {
+        context.SetRoutingKey("order.created");
+    });
 
     return Results.Created($"orders/{order.OrderId}", orderPlacedMessage);
 });

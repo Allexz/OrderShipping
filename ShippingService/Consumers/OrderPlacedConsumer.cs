@@ -3,13 +3,16 @@ using SharedMessages.Messages;
 
 namespace ShippingService.Consumers;
 
-public class OrderPlacedConsumer : IConsumer<OrderPlaced>
+public class OrderPlacedConsumer : IConsumer<OrderPlacedMessage>
 {   
-    public Task Consume(ConsumeContext<OrderPlaced> context)
+    public Task Consume(ConsumeContext<OrderPlacedMessage> context)
     {
-        // Here you would implement the logic to handle the OrderPlaced event
-        // For example, you might log the order details or initiate shipping processing
-        Console.WriteLine($"Order received: {context.Message.OrderId}, Quantity: {context.Message.Quantity}");
+        if (context.Message.Quantity <= 0)
+        {
+            Console.WriteLine($"Rejected order with ID: {context.Message.OrderId}");
+            throw new Exception("Order rejected due to insufficient stock.");
+        }
+        Console.WriteLine($"Order placed with ID: {context.Message.OrderId}, Quantity: {context.Message.Quantity}");
         return Task.CompletedTask;
     }
 }

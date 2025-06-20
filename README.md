@@ -40,10 +40,19 @@
 4. __Estratégia de retentativa__  
    e.UseMessageRetry(r => r.Exponential(
     3, // retryLimit => máximo de tentativas antes de mover a mensagem para DEAD LETTER QUEUE  
-    TimeSpan.FromSeconds(1), // minInterval => intervalo inicial entre tentativas (1º retry após 1 segundo)  
-    TimeSpan.FromSeconds(5), // maxInterval => intervalo máximo entre tentativas (não ultrapassa os 5 segundos configurados)  
-    TimeSpan.FromSeconds(10))); // intervalDelta => tempo total máximo de atraso acumulado antes de parar de esperar e avançar para o próximo retry ou DEAD LETTER QUEUE  
-  
+    TimeSpan.FromSeconds(1),_// minInterval => intervalo inicial entre tentativas (1º retry após 1 segundo)_  
+    TimeSpan.FromSeconds(5), _// maxInterval => intervalo máximo entre tentativas (não ultrapassa os 5 segundos configurados)_    
+    TimeSpan.FromSeconds(10))); _// intervalDelta => tempo total máximo de atraso acumulado antes de parar de esperar e avançar para o próximo retry ou DEAD LETTER QUEUE_  
+
+5. __Circuit Breaker__  
+  e.UseKillSwitch(options => { _//UseKillSwitch => quando ativado para de consumir mensagens até o sistema ser reiniciado_   
+    options.SetActivationThreshold(10); _// define o número total de falhas necessárias para considerar a ativação do KILL SWITCH_   
+    options.SetTripThreshold(5) _// define quantas falhas consecutivas são necessárias para acionar o _trip_ KILL SWITCH_    
+    .SetRestartTimeout(m: 1); _// Set the trip threshold and restart timeout_  
+});   
+
+ 
+
 
 
 

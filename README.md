@@ -36,6 +36,13 @@
    Utilize em cenários complexos com múltiplos tipos de roteamento  .
    
 3. __Binding__ (vinculação) é a configuração que define como mensagens são roteadas de uma exchange (no RabbitMQ) ou um tópico (em outros brokers) para uma fila específica. Ele estabelece as regras de filtragem e entrega de mensagens com base em routing keys ou padrões de assinatura.
+
+4. __Estratégia de retentativa__  
+   e.UseMessageRetry(r => r.Exponential(
+    3, // retryLimit => máximo de tentativas antes de mover a mensagem para DEAD LETTER QUEUE  
+    TimeSpan.FromSeconds(1), // minInterval => intervalo inicial entre tentativas (1º retry após 1 segundo)  
+    TimeSpan.FromSeconds(5), // maxInterval => intervalo máximo entre tentativas (não ultrapassa os 5 segundos configurados)  
+    TimeSpan.FromSeconds(10))); // intervalDelta => tempo total máximo de atraso acumulado antes de parar de esperar e avançar para o próximo retry ou DEAD LETTER QUEUE  
   
 
 

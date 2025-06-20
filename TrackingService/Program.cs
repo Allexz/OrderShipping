@@ -8,26 +8,23 @@ builder.Services.AddMassTransit(( rmq) =>
     rmq.AddConsumer<OrderPlacedConsumer>();
     rmq.UsingRabbitMq((context, cfg) =>
     {
-        cfg.ExchangeType = "topic"; // Define o tipo de exchange como topic
         cfg.Host("rabbitmq://localhost", h =>
         {
             h.Username("admin");
             h.Password("senhaadmin");
         });
-        // Define explicitamente o tipo da exchange de publicação
-        cfg.Publish<OrderPlaced>(x =>
-        {
-            x.ExchangeType = "topic";
-        });
+        cfg.Message<OrderPlacedMessage>(x => x.SetEntityName("order-headers-exchange"));
+        cfg.Publish<OrderPlacedMessage>(x => x.ExchangeType = "headers");
 
         cfg.ReceiveEndpoint("tracking-queue", e =>
         {
-            e.ConfigureConsumeTopology = false;
-            e.ConfigureConsumer<OrderPlacedConsumer>(context);
-            e.Bind("order-placed-exchange", x =>
+            e.Consumer<OrderPlacedConsumer>(context);
+            e.Bind("order-headers-exchange", x =>
             {
-                x.ExchangeType = "topic";
-                x.RoutingKey = "order.#";
+                x.ExchangeType = "headers";
+                x.SetBindingArgument("department", "tracking");
+                x.SetBindingArgument("priority", "low");
+                x.SetBindingArgument("x-match", "all");
             });
             e.PrefetchCount = 10; 
             e.ConcurrentMessageLimit = 5; 

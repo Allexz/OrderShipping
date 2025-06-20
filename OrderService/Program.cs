@@ -7,6 +7,7 @@ builder.Services.AddMassTransit(rmq =>
 {
     rmq.UsingRabbitMq((context, cfg) =>
     {
+
         cfg.Host("rabbitmq://localhost", h =>
         {
             h.Username("admin");
@@ -15,12 +16,9 @@ builder.Services.AddMassTransit(rmq =>
             h.RequestedConnectionTimeout(10000);
             h.PublisherConfirmation = true;
         });
-    
-        cfg.Message<OrderPlacedMessage>(x => x.SetEntityName("order-placed-exchange"));
-        cfg.Publish<OrderPlacedMessage>(x =>
-        {
-            x.ExchangeType = "topic";
-        });
+
+        cfg.Message<OrderPlacedMessage>(x => x.SetEntityName("order-headers-exchange"));
+        cfg.Publish<OrderPlacedMessage>(x => x.ExchangeType = "headers");
     });
 });
 
@@ -34,24 +32,27 @@ app.UseSwagger();
 app.UseSwaggerUI();
 app.MapPost("/orders", async (OrderRequest order, IBus bus) =>
 {
-    OrderPlacedMessage orderPlacedMessage = new OrderPlacedMessage(order.OrderId, order.Quantity);
+    var orderPlacedMessage = new OrderPlacedMessage(order.OrderId, order.Quantity);
 
-    bool isLowQuantity = order.Quantity < 10;
-
-    if (isLowQuantity)
+    Dictionary<string, object> headers = new();
+    if (order.Quantity < 10)
     {
-        await bus.Publish(orderPlacedMessage, context =>
-        {
-            context.SetRoutingKey("order.shipping");
-        });
+        headers["department"] = "shipping";
+        headers["priority"] = "high";
     }
     else
     {
-        await bus.Publish(orderPlacedMessage, context =>
-        {
-            context.SetRoutingKey("order.regular.tracking");
-        });
+        headers["department"] = "tracking";
+        headers["priority"] = "low";
     }
+
+    await bus.Publish(orderPlacedMessage, context =>
+    {
+        context.Headers.Set("department", headers["department"]);
+        context.Headers.Set("priority", headers["priority"]);
+    });
+
+    
     return Results.Created($"orders/{order.OrderId}", orderPlacedMessage);
 });
 
@@ -72,5 +73,4 @@ app.MapGet("/test-rabbit", async (IBus bus) =>
 });
 
 app.Run();
-
 public record OrderRequest(Guid OrderId, int Quantity);

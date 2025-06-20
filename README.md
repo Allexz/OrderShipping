@@ -1,5 +1,10 @@
 # SPRINT: UDEMY COURSES
- ### **Iniciado em: 13/06** 
+
+### CONCEITOS BÁSICOS ###  
+__Producer__: aplicação que envia mensagens para o RABBITMQ.    
+__Queue__: funciona como uma caixa de e-mail no RABBITMQ onde são guardadas as mensagens.    
+__Consumer__: aplicação que recebe mensagens de uma QUEUE do RABBITMQ.    
+__Exchange__: mecanismo de rotas que recebe mensagens de PRODUCERS e as direciona para QUEUE de acordo com regras pré-estabelecidas.   
 
 ## Comparação entre Tipos de Exchanges
 

@@ -1,11 +1,11 @@
 using MassTransit;
-using PaymentServices;
+using PaymentServices.Consumer;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddMassTransit(x =>
 {
-    x.AddConsumer<InventoryReservedConsumer>();
+    x.AddConsumer<PaymentConsumer>();
 
     x.UsingRabbitMq((context, cfg) =>
     {
@@ -14,9 +14,9 @@ builder.Services.AddMassTransit(x =>
             h.Username("admin");
             h.Password("senhaadmin");
         });
-        cfg.ReceiveEndpoint("inventory-reserved", e =>
+        cfg.ReceiveEndpoint("payment-queue", e =>
         {
-            e.Consumer<InventoryReservedConsumer>();
+            e.Consumer<PaymentConsumer>();
         });
     });
 });
@@ -26,10 +26,6 @@ builder.Services.AddMassTransit(x =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-
-app.UseHttpsRedirection();
-
-
 
 
 app.Run();

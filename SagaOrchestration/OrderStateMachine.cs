@@ -12,7 +12,6 @@ public class OrderStateMachine : MassTransitStateMachine<OrderState>
     //Events
     public Event<OrderPlacedMessage> OrderPlacedEvent { get; private set; }
     public Event<InventoryReserved> InventoryReservedEvent { get; private set; }
-
     public Event<PaymentCompleted> PaymentCompletedEvent { get; private set; }
 
     public OrderStateMachine()

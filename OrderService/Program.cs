@@ -1,5 +1,6 @@
 using MassTransit;
-using SharedMessages.Messages;
+using OrderService.Entities;
+using OrderService.Saga;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +9,10 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddMassTransit(rmq =>
 {
+    rmq.AddSagaStateMachine<OrderSaga, OrderState>()
+        .InMemoryRepository();
+
+
     rmq.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host("rabbitmq://localhost", h =>
@@ -15,23 +20,47 @@ builder.Services.AddMassTransit(rmq =>
             h.Username("admin");
             h.Password("senhaadmin");
         });
+        cfg.ReceiveEndpoint("order-state", e =>
+        {
+            e.ConfigureSaga<OrderState>(context);
+        });
     });
 });
-//EndpointConvention.Map<OrderPlacedMessage>(new Uri("queue:order-placed-exchange"));
-
 
 var app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.MapPost("/orders", async (OrderDto order, IBus bus) =>
+app.MapPost("/api/orders", async (CreateOrderRequest request, IPublishEndpoint publishEndpoint) =>
 {
-    var orderPlacedMessage = new OrderPlacedMessage(order.OrderId, order.Quantity);
-    await bus.Publish(orderPlacedMessage);
-    return Results.Created($"orders/{order.OrderId}", orderPlacedMessage);
-});
+    var orderId = NewId.NextGuid();
+
+    await publishEndpoint.Publish<OrderCreated>(new
+    {
+        OrderId = orderId,
+        CustomerId = request.CustomerId,
+        Items = request.Items.Select(item => new
+        {
+            ProductId = item.ProductId,
+            Quantity = item.Quantity,
+            Price = item.Price
+        }).ToList(),
+        TotalAmount = request.Items.Sum(item => item.Quantity * item.Price)
+    });
+
+    return Results.Accepted($"/api/orders/{orderId}", new { OrderId = orderId });
+})
+.WithName("CreateOrder")
+.WithOpenApi();
 
 app.Run();
 
-public record OrderDto(Guid OrderId, int Quantity);
+public record CreateOrderRequest(
+    Guid CustomerId,
+    List<OrderItemDto> Items);
+
+public record OrderItemDto(
+    Guid ProductId,
+    int Quantity,
+    decimal Price);

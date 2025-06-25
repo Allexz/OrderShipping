@@ -13,7 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SharedMessages\SharedMessages.csproj" />
+    <ProjectReference Include="..\InventoryService\InventoryService.csproj" />
+    <ProjectReference Include="..\PaymentServices\PaymentServices.csproj" />
   </ItemGroup>
 
 </Project>

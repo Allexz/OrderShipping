@@ -5,7 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddMassTransit(rmq =>
 {
-    rmq.AddConsumer<OrderPlacedConsumer>();
+    rmq.AddConsumer<InventoryConsumer>();
     rmq.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host("rabbitmq://localhost", h =>
@@ -13,7 +13,12 @@ builder.Services.AddMassTransit(rmq =>
             h.Username("admin");
             h.Password("senhaadmin");
         });
+        cfg.ReceiveEndpoint("inventory-service", e =>
+        {
+            e.ConfigureConsumer<InventoryConsumer>(context); 
+        });
     });
+
 });
 
 var app = builder.Build();

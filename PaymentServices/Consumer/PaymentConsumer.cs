@@ -8,7 +8,7 @@ public class PaymentConsumer : IConsumer<ProcessPayment>
     public async Task Consume(ConsumeContext<ProcessPayment> context)
     {
         var paymentApproved = ProcessPayment(context.Message.Amount);
-
+        Console.WriteLine($"Processing payment for Order ID: {context.Message.OrderId}, Amount: {context.Message.Amount}");
         if (paymentApproved)
         {
             await context.Publish<PaymentCompleted>(new

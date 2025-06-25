@@ -7,6 +7,7 @@ public class InventoryConsumer : IConsumer<ReserveInventory>
 {
     public async Task Consume(ConsumeContext<ReserveInventory> context)
     {
+        Console.WriteLine($"Reserving inventory for Order ID: {context.Message.OrderId}");
         var hasStock = CheckInventory(context.Message.Items);
 
         if (hasStock)

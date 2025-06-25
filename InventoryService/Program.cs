@@ -1,5 +1,5 @@
+using InventoryService.Consumer;
 using MassTransit;
-using OrderShipping.InventoryService;
 
 var builder = WebApplication.CreateBuilder(args);
 

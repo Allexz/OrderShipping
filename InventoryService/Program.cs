@@ -1,4 +1,5 @@
 using InventoryService.Consumer;
+using InventoryService.Settings;
 using MassTransit;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +14,7 @@ builder.Services.AddMassTransit(rmq =>
             h.Username("admin");
             h.Password("senhaadmin");
         });
+        cfg.MessageTopology.SetEntityNameFormatter(new CustomEntityNameFormatter());
         cfg.ReceiveEndpoint("inventory-service", e =>
         {
             e.ConfigureConsumer<InventoryConsumer>(context); 

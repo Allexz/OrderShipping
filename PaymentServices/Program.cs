@@ -1,5 +1,6 @@
 using MassTransit;
 using PaymentServices.Consumer;
+using PaymentServices.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +15,8 @@ builder.Services.AddMassTransit(x =>
             h.Username("admin");
             h.Password("senhaadmin");
         });
+        cfg.MessageTopology.SetEntityNameFormatter(new CustomEntityNameFormatter());
+
         cfg.ReceiveEndpoint("payment-queue", e =>
         {
             e.Consumer<PaymentConsumer>();

@@ -1,6 +1,7 @@
 using MassTransit;
 using OrderService.Entities;
 using OrderService.Saga;
+using OrderService.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,7 +13,6 @@ builder.Services.AddMassTransit(rmq =>
     rmq.AddSagaStateMachine<OrderSaga, OrderState>()
         .InMemoryRepository();
 
-
     rmq.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host("rabbitmq://localhost", h =>
@@ -20,6 +20,7 @@ builder.Services.AddMassTransit(rmq =>
             h.Username("admin");
             h.Password("senhaadmin");
         });
+        cfg.MessageTopology.SetEntityNameFormatter(new CustomEntityNameFormatter());
         cfg.ReceiveEndpoint("order-state", e =>
         {
             e.ConfigureSaga<OrderState>(context);

@@ -1,10 +1,18 @@
 using MassTransit;
-using SharedMessages.Messages;
+using OrderService.Entities;
+using OrderService.Saga;
+using OrderService.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 builder.Services.AddMassTransit(rmq =>
 {
+    rmq.AddSagaStateMachine<OrderSaga, OrderState>()
+        .InMemoryRepository();
+
     rmq.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host("rabbitmq://localhost", h =>
@@ -12,26 +20,48 @@ builder.Services.AddMassTransit(rmq =>
             h.Username("admin");
             h.Password("senhaadmin");
         });
+        cfg.MessageTopology.SetEntityNameFormatter(new CustomEntityNameFormatter());
+        cfg.ReceiveEndpoint("order-state", e =>
+        {
+            e.ConfigureSaga<OrderState>(context);
+        });
     });
 });
-EndpointConvention.Map<OrderPlaced>(new Uri("queue:order-placed"));
-
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.MapPost("/orders", async (OrderRequest order, IBus bus) =>
+app.MapPost("/api/orders", async (CreateOrderRequest request, IPublishEndpoint publishEndpoint) =>
 {
-    var orderPlacedMessage = new OrderPlaced(order.OrderId, order.Quantity);
-    await bus.Send(orderPlacedMessage);
+    var orderId = NewId.NextGuid();
 
-    return Results.Created($"orders/{order.OrderId}", orderPlacedMessage);
-});
+    await publishEndpoint.Publish<OrderCreated>(new
+    {
+        OrderId = orderId,
+        CustomerId = request.CustomerId,
+        Items = request.Items.Select(item => new
+        {
+            ProductId = item.ProductId,
+            Quantity = item.Quantity,
+            Price = item.Price
+        }).ToList(),
+        TotalAmount = request.Items.Sum(item => item.Quantity * item.Price)
+    });
+
+    return Results.Accepted($"/api/orders/{orderId}", new { OrderId = orderId });
+})
+.WithName("CreateOrder")
+.WithOpenApi();
 
 app.Run();
 
-public record OrderRequest(Guid OrderId, int Quantity);
+public record CreateOrderRequest(
+    Guid CustomerId,
+    List<OrderItemDto> Items);
+
+public record OrderItemDto(
+    Guid ProductId,
+    int Quantity,
+    decimal Price);

@@ -14,9 +14,21 @@ builder.Services.AddMassTransit((rmq) =>
             h.Username("admin");
             h.Password("senhaadmin");
         });
-        cfg.ReceiveEndpoint("order-placed", e =>
+        cfg.ReceiveEndpoint("shipping-order-queue", e =>
         {
             e.Consumer<OrderPlacedConsumer>(context);
+            e.ConfigureConsumeTopology = false; 
+            e.Bind("order-placed-exchange", x =>
+            {
+                x.ExchangeType = "direct";
+                x.RoutingKey = "order.created";
+            });
+            e.UseKillSwitch(options =>             {
+                options.SetActivationThreshold(2);  
+                options.SetTripThreshold(2)
+                .SetRestartTimeout(m: 1);  
+            });
+
         });
     });
 });

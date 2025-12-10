@@ -1,4 +1,4 @@
-# SPRINT: UDEMY COURSES
+
 
 ### CONCEITOS BÁSICOS ###  
 __Producer__: aplicação que envia mensagens para o RABBITMQ.    
